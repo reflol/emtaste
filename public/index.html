@@ -8,6 +8,9 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700&family=Space+Grotesk:wght@400;500;600&display=swap" rel="stylesheet" />
     <link rel="icon" type="image/png" href="favicon.png" />
+    <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png" />
+    <link rel="manifest" href="manifest.json" />
+    <meta name="theme-color" content="#7C2BE3" />
     <link rel="stylesheet" href="styles.css" />
   </head>
   <body>
@@ -25,10 +28,7 @@
             </div>
           </div>
         </div>
-        <p class="subhead">Save restaurants and late-night bites in seconds. Search Google Maps, then save the spot.</p>
         <div class="hero-actions">
-          <button id="change-pin" class="ghost">Change PIN</button>
-          <span class="pill" id="sync-status">Sync ready</span>
           <span class="pill location-pill" id="location-pill" hidden></span>
         </div>
       </div>
@@ -38,7 +38,6 @@
       <section class="card form-card">
         <div class="card-head">
           <h2>Find a spot</h2>
-          <p>Search Google Maps near you, pick a result, then save it with notes.</p>
         </div>
         <form id="place-form" autocomplete="off">
           <label>
@@ -73,7 +72,6 @@
         <div class="card-head">
           <div>
             <h2>Saved places</h2>
-            <p>Everything in your shared list so far.</p>
           </div>
           <input id="filter" type="search" placeholder="Filter saved places" />
         </div>
