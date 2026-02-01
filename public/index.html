@@ -6,13 +6,15 @@
     <title>emtaste</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Manrope:wght@400;500;600&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700&family=Space+Grotesk:wght@400;500;600&display=swap" rel="stylesheet" />
     <link rel="icon" type="image/svg+xml" href="favicon.svg" />
     <link rel="stylesheet" href="styles.css" />
   </head>
   <body>
     <div class="bg-orb orb-one" aria-hidden="true"></div>
     <div class="bg-orb orb-two" aria-hidden="true"></div>
+    <div class="bg-sun" aria-hidden="true"></div>
+    <div class="bg-grid" aria-hidden="true"></div>
     <header class="hero">
       <div class="hero-card">
         <div class="hero-header">
@@ -29,10 +31,11 @@
             <span></span>
           </div>
         </div>
-        <p class="subhead">Save restaurants and lucky bites in seconds. Paste a Google Maps link and keep the list shared across devices.</p>
+        <p class="subhead">Save restaurants and late-night bites in seconds. Search Google Maps, then save the spot.</p>
         <div class="hero-actions">
           <button id="change-pin" class="ghost">Change PIN</button>
           <span class="pill" id="sync-status">Sync ready</span>
+          <span class="pill location-pill" id="location-pill" hidden></span>
         </div>
       </div>
     </header>
@@ -40,18 +43,25 @@
     <main class="layout">
       <section class="card form-card">
         <div class="card-head">
-          <h2>Quick add</h2>
-          <p>Paste a Maps link and jot a short note. Short links may need the full URL.</p>
+          <h2>Find a spot</h2>
+          <p>Search Google Maps near you, pick a result, then save it with notes.</p>
         </div>
         <form id="place-form" autocomplete="off">
           <label>
-            Maps link
-            <input id="maps-url" name="mapsUrl" type="url" placeholder="https://www.google.com/maps/place/..." required />
+            Search Google Maps
+            <div class="search-row">
+              <input id="search-query" type="text" placeholder="tacos, ramen, coffee" />
+              <button id="search-button" class="ghost" type="button">Search</button>
+            </div>
           </label>
-          <label>
-            Name
-            <input id="place-name" name="name" type="text" placeholder="Hana Ramen" required />
-          </label>
+          <p class="form-hint" id="search-hint"></p>
+          <div id="search-results" class="search-results"></div>
+          <div id="selected-place" class="selected-place">
+            <p class="selected-label">Selected place</p>
+            <p id="selected-name" class="selected-name">No place selected yet.</p>
+            <p id="selected-address" class="selected-address"></p>
+            <a id="selected-map" class="ghost" target="_blank" rel="noopener noreferrer">Open map</a>
+          </div>
           <label>
             Notes
             <textarea id="place-note" name="note" rows="3" placeholder="Why we want to go, what to order"></textarea>
@@ -60,7 +70,7 @@
             Tags
             <input id="place-tags" name="tags" type="text" placeholder="ramen, date night" />
           </label>
-          <button class="primary" type="submit">Save spot</button>
+          <button id="save-place" class="primary" type="submit" disabled>Save spot</button>
           <p class="form-hint" id="form-hint"></p>
         </form>
       </section>
@@ -71,11 +81,20 @@
             <h2>Saved places</h2>
             <p>Everything in your shared list so far.</p>
           </div>
-          <input id="search" type="search" placeholder="Search by name or tag" />
+          <input id="filter" type="search" placeholder="Filter saved places" />
         </div>
         <div id="places" class="places"></div>
       </section>
     </main>
+
+    <div id="geo-modal" class="modal" aria-hidden="true">
+      <div class="modal-card">
+        <h3>Location required</h3>
+        <p>emtaste sorts your saved places by distance and needs your location to work.</p>
+        <button id="geo-retry" class="primary">Retry location</button>
+        <p id="geo-error" class="error"></p>
+      </div>
+    </div>
 
     <div id="pin-modal" class="modal" aria-hidden="true">
       <div class="modal-card">
@@ -96,12 +115,27 @@
         <div>
           <h3 class="place-title"></h3>
           <p class="place-meta"></p>
+          <p class="place-address"></p>
           <p class="place-note"></p>
           <div class="place-tags"></div>
         </div>
         <div class="place-actions">
           <a class="ghost" target="_blank" rel="noopener noreferrer">Open map</a>
           <button class="ghost danger">Delete</button>
+        </div>
+      </article>
+    </template>
+
+    <template id="result-template">
+      <article class="result">
+        <div>
+          <h3 class="result-title"></h3>
+          <p class="result-address"></p>
+          <p class="result-distance"></p>
+        </div>
+        <div class="result-actions">
+          <a class="ghost" target="_blank" rel="noopener noreferrer">Open map</a>
+          <button class="primary small" type="button">Select</button>
         </div>
       </article>
     </template>

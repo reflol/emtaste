@@ -5,6 +5,7 @@ services:
       - "3000:3000"
     environment:
       APP_PIN: ${APP_PIN}
+      GOOGLE_MAPS_API_KEY: ${GOOGLE_MAPS_API_KEY}
     volumes:
       - places_data:/app/data
     restart: unless-stopped
