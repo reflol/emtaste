@@ -121,5 +121,6 @@ You should get JSON with a `label`. If you see a 502, the Maps key is missing or
 
 This version is intentionally simple: one shared list secured by a PIN. Anyone with the PIN can read and write to the list.
 Saved entries require place ID and coordinates for distance sorting.
-The UI is optimized for iPhone SE (2nd gen) as the primary device, with compact spacing and stacked controls at small widths.
+The UI is optimized for iPhone 13 mini (iOS 26.2.1) as the primary device, with compact spacing and stacked controls at small widths.
+The pinned iOS app disables zoom via the viewport meta tag to prevent input-focus zoom.
 If location is denied, enable it in your browser settings for emtaste.com.

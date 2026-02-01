@@ -351,6 +351,8 @@ pinSave.addEventListener('click', async () => {
     showPinError();
     return;
   }
+  pinInput.blur();
+  window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
   setPin(pin, pinRemember.checked);
   try {
     await loadPlaces();
