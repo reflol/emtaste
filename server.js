@@ -1,6 +1,7 @@
 import crypto from 'crypto';
-import { existsSync, mkdirSync, readFileSync, renameSync, writeFileSync } from 'fs';
+import { existsSync } from 'fs';
 import { join, resolve } from 'path';
+import { Firestore } from '@google-cloud/firestore';
 
 const appPin = (process.env.APP_PIN || '').trim();
 if (!/^\d{6}$/.test(appPin)) {
@@ -15,18 +16,52 @@ if (!mapsApiKey) {
   process.exit(1);
 }
 
+const port = Number(process.env.PORT);
+if (!Number.isFinite(port) || port <= 0) {
+  console.error('[places] PORT is required and must be a valid number.');
+  process.exit(1);
+}
+
+const firestoreProjectId = (process.env.FIRESTORE_PROJECT_ID || '').trim();
+if (!firestoreProjectId) {
+  console.error('[places] FIRESTORE_PROJECT_ID is required.');
+  process.exit(1);
+}
+
+const firestoreDatabase = (process.env.FIRESTORE_DATABASE || '').trim();
+if (!firestoreDatabase) {
+  console.error('[places] FIRESTORE_DATABASE is required.');
+  process.exit(1);
+}
+
+const firestoreCollection = (process.env.FIRESTORE_COLLECTION || '').trim();
+if (!firestoreCollection) {
+  console.error('[places] FIRESTORE_COLLECTION is required.');
+  process.exit(1);
+}
+
+const credentialsPath = (process.env.GOOGLE_APPLICATION_CREDENTIALS || '').trim();
+if (!credentialsPath) {
+  console.error('[places] GOOGLE_APPLICATION_CREDENTIALS is required.');
+  process.exit(1);
+}
+if (!existsSync(credentialsPath)) {
+  console.error(`[places] GOOGLE_APPLICATION_CREDENTIALS file not found at ${credentialsPath}.`);
+  process.exit(1);
+}
+
 const SEARCH_RADIUS_METERS = 8000;
 const PLACES_TEXT_SEARCH_URL = 'https://places.googleapis.com/v1/places:searchText';
 const GEOCODE_URL = 'https://maps.googleapis.com/maps/api/geocode/json';
 
-const dataDir = join(import.meta.dir, 'data');
-const dataFile = join(dataDir, 'places.json');
-mkdirSync(dataDir, { recursive: true });
+const firestore = new Firestore({
+  projectId: firestoreProjectId,
+  databaseId: firestoreDatabase
+});
+const placesCollection = firestore.collection(firestoreCollection);
 
 const publicDir = join(import.meta.dir, 'public');
 const indexFile = Bun.file(join(publicDir, 'index.html'));
-
-let store = { places: [] };
 
 function isFiniteNumber(value) {
   return typeof value === 'number' && Number.isFinite(value);
@@ -54,41 +89,33 @@ function validatePlace(place) {
   return '';
 }
 
-function loadStore() {
-  if (!existsSync(dataFile)) {
-    store = { places: [] };
-    saveStore();
-    return;
-  }
-
-  let parsed;
-  try {
-    parsed = JSON.parse(readFileSync(dataFile, 'utf8'));
-  } catch (err) {
-    console.error('[places] Invalid JSON in data file. Fix or delete the file.');
-    process.exit(1);
-  }
-
-  if (!parsed || !Array.isArray(parsed.places)) {
-    console.error('[places] Invalid data file structure. Expected { places: [] }.');
-    process.exit(1);
-  }
-
-  for (const place of parsed.places) {
+async function listPlaces() {
+  const snapshot = await placesCollection.orderBy('createdAt', 'desc').get();
+  const places = [];
+  for (const doc of snapshot.docs) {
+    const data = doc.data();
+    const place = { ...data, id: doc.id };
     const error = validatePlace(place);
     if (error) {
-      console.error(`[places] Invalid place entry. ${error}`);
-      process.exit(1);
+      throw new Error(`Invalid place entry in Firestore. ${error}`);
     }
+    places.push(place);
   }
-
-  store = parsed;
+  return places;
 }
 
-function saveStore() {
-  const tempFile = `${dataFile}.tmp`;
-  writeFileSync(tempFile, JSON.stringify(store, null, 2), 'utf8');
-  renameSync(tempFile, dataFile);
+async function createPlace(place) {
+  await placesCollection.doc(place.id).set(place);
+}
+
+async function deletePlace(id) {
+  const ref = placesCollection.doc(id);
+  const snapshot = await ref.get();
+  if (!snapshot.exists) {
+    return false;
+  }
+  await ref.delete();
+  return true;
 }
 
 function buildMapsUrl(placeId, name, address) {
@@ -132,10 +159,8 @@ async function serveStatic(pathname) {
   return new Response(indexFile);
 }
 
-loadStore();
-
 Bun.serve({
-  port: 3000,
+  port,
   async fetch(request) {
     const url = new URL(request.url);
     const pathname = url.pathname;
@@ -241,7 +266,13 @@ Bun.serve({
       }
 
       if (pathname === '/api/places' && request.method === 'GET') {
-        return Response.json(store.places);
+        try {
+          const places = await listPlaces();
+          return Response.json(places);
+        } catch (err) {
+          console.error('[places] Failed to load places from Firestore.', err);
+          return Response.json({ error: 'Failed to load places' }, { status: 502 });
+        }
       }
 
       if (pathname === '/api/places' && request.method === 'POST') {
@@ -284,9 +315,13 @@ Bun.serve({
         if (error) {
           return Response.json({ error: `Invalid place data. ${error}` }, { status: 400 });
         }
-        store.places.push(place);
-        saveStore();
-        return Response.json(place, { status: 201 });
+        try {
+          await createPlace(place);
+          return Response.json(place, { status: 201 });
+        } catch (err) {
+          console.error('[places] Failed to save place to Firestore.', err);
+          return Response.json({ error: 'Failed to save place' }, { status: 502 });
+        }
       }
 
       if (pathname.startsWith('/api/places/') && request.method === 'DELETE') {
@@ -294,13 +329,16 @@ Bun.serve({
         if (!id) {
           return Response.json({ error: 'Not found' }, { status: 404 });
         }
-        const before = store.places.length;
-        store.places = store.places.filter((place) => place.id !== id);
-        if (store.places.length === before) {
-          return Response.json({ error: 'Not found' }, { status: 404 });
+        try {
+          const removed = await deletePlace(id);
+          if (!removed) {
+            return Response.json({ error: 'Not found' }, { status: 404 });
+          }
+          return Response.json({ ok: true });
+        } catch (err) {
+          console.error('[places] Failed to delete place from Firestore.', err);
+          return Response.json({ error: 'Failed to delete place' }, { status: 502 });
         }
-        saveStore();
-        return Response.json({ ok: true });
       }
 
       return Response.json({ error: 'Not found' }, { status: 404 });
@@ -314,4 +352,4 @@ Bun.serve({
   }
 });
 
-console.log('[places] listening on http://localhost:3000');
+console.log(`[places] listening on http://localhost:${port}`);

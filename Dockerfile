@@ -2,10 +2,12 @@ FROM oven/bun:1
 
 WORKDIR /app
 
+COPY package.json bun.lockb* ./
+RUN bun install --production
+
 COPY . .
 
-RUN mkdir -p /app/data \
-  && chown -R bun:bun /app
+RUN chown -R bun:bun /app
 
 USER bun
 

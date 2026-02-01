@@ -6,9 +6,11 @@ services:
     environment:
       APP_PIN: ${APP_PIN}
       GOOGLE_MAPS_API_KEY: ${GOOGLE_MAPS_API_KEY}
+      PORT: ${PORT}
+      FIRESTORE_PROJECT_ID: ${FIRESTORE_PROJECT_ID}
+      FIRESTORE_DATABASE: ${FIRESTORE_DATABASE}
+      FIRESTORE_COLLECTION: ${FIRESTORE_COLLECTION}
+      GOOGLE_APPLICATION_CREDENTIALS: /secrets/firestore-key.json
     volumes:
-      - places_data:/app/data
+      - ./secrets/firestore-key.json:/secrets/firestore-key.json:ro
     restart: unless-stopped
-
-volumes:
-  places_data:
