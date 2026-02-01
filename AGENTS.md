@@ -7,5 +7,5 @@
 - Require explicit configuration for secrets (e.g., `APP_PIN`).
 - Keep the app simple: one shared list, one API, one storage path.
 - At the end of each work cycle, clean up any failed or now-unused code; ask before removing documentation.
-- After completing a change, bring the container up with Docker Compose and verify the app using the Chrome MCP server.
+- After completing a change, deploy to production and verify the live site with the Chrome MCP server.
 - The PIN and Location modals must be minimal: only the title ("PIN" or "Location") plus the required controls. No descriptive subtext.

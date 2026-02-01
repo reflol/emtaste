@@ -105,3 +105,4 @@ The app redirects `www` → apex in `functions/_middleware.js`.
 This version is intentionally simple: one shared list secured by a PIN. Anyone with the PIN can read and write to the list.
 Saved entries require place ID and coordinates for distance sorting.
 The UI is optimized for iPhone SE (2nd gen) as the primary device, with compact spacing and stacked controls at small widths.
+If location is denied, enable it in your browser settings for emtaste.com.

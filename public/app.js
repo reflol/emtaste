@@ -3,6 +3,7 @@ let sessionPin = '';
 let places = [];
 let userLocation = null;
 let deferredInstall = null;
+let locationDeniedNotified = false;
 
 const geoModal = document.getElementById('geo-modal');
 const geoRetry = document.getElementById('geo-retry');
@@ -86,6 +87,14 @@ function showPinHelp() {
     return;
   }
   alert('Use your browser menu and choose “Add to Home screen.”');
+}
+
+function notifyLocationDenied(error) {
+  if (!error || error.code !== 1 || locationDeniedNotified) {
+    return;
+  }
+  locationDeniedNotified = true;
+  alert('Location blocked. Enable it in browser settings for emtaste.com.');
 }
 
 window.addEventListener('beforeinstallprompt', (event) => {
@@ -293,6 +302,7 @@ async function ensureLocation() {
     renderPlaces();
     return true;
   } catch (err) {
+    notifyLocationDenied(err);
     openGeoModal();
     return false;
   }
