@@ -1,0 +1,13 @@
+services:
+  app:
+    build: .
+    ports:
+      - "3000:3000"
+    environment:
+      APP_PIN: ${APP_PIN}
+    volumes:
+      - places_data:/app/data
+    restart: unless-stopped
+
+volumes:
+  places_data:
