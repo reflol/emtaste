@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>emtaste</title>
+    <title>emtaste.com</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700&family=Space+Grotesk:wght@400;500;600&display=swap" rel="stylesheet" />
@@ -23,9 +23,6 @@
         <div class="hero-header">
           <div class="brand">
             <img class="logo" src="logo.png" alt="emtaste logo" />
-            <div>
-              <h1>emtaste</h1>
-            </div>
           </div>
         </div>
         <div class="hero-actions">
@@ -37,33 +34,11 @@
     <main class="layout">
       <section class="card form-card">
         <div class="card-head">
-          <h2>Find a spot</h2>
+          <h2>Search</h2>
         </div>
         <form id="place-form" autocomplete="off">
-          <label>
-            Search Google Maps
-            <div class="search-row">
-              <input id="search-query" type="text" placeholder="tacos, ramen, coffee" />
-              <button id="search-button" class="ghost" type="button">Search</button>
-            </div>
-          </label>
-          <p class="form-hint" id="search-hint"></p>
+          <input id="search-query" type="text" aria-label="Search nearby" />
           <div id="search-results" class="search-results"></div>
-          <div id="selected-place" class="selected-place">
-            <p class="selected-label">Selected place</p>
-            <p id="selected-name" class="selected-name">No place selected yet.</p>
-            <p id="selected-address" class="selected-address"></p>
-            <a id="selected-map" class="ghost" target="_blank" rel="noopener noreferrer">Open map</a>
-          </div>
-          <label>
-            Notes
-            <textarea id="place-note" name="note" rows="3" placeholder="Why we want to go, what to order"></textarea>
-          </label>
-          <label>
-            Tags
-            <input id="place-tags" name="tags" type="text" placeholder="ramen, date night" />
-          </label>
-          <button id="save-place" class="primary" type="submit" disabled>Save spot</button>
           <p class="form-hint" id="form-hint"></p>
         </form>
       </section>
@@ -71,9 +46,8 @@
       <section class="card list-card">
         <div class="card-head">
           <div>
-            <h2>Saved places</h2>
+            <h2>Saved</h2>
           </div>
-          <input id="filter" type="search" placeholder="Filter saved places" />
         </div>
         <div id="places" class="places"></div>
       </section>
@@ -108,8 +82,6 @@
           <h3 class="place-title"></h3>
           <p class="place-meta"></p>
           <p class="place-address"></p>
-          <p class="place-note"></p>
-          <div class="place-tags"></div>
         </div>
         <div class="place-actions">
           <a class="ghost" target="_blank" rel="noopener noreferrer">Open map</a>
@@ -124,10 +96,6 @@
           <h3 class="result-title"></h3>
           <p class="result-address"></p>
           <p class="result-distance"></p>
-        </div>
-        <div class="result-actions">
-          <a class="ghost" target="_blank" rel="noopener noreferrer">Open map</a>
-          <button class="primary small" type="button">Select</button>
         </div>
       </article>
     </template>

@@ -135,7 +135,7 @@ p {
 
 .hero-header {
   display: flex;
-  justify-content: space-between;
+  justify-content: center;
   align-items: center;
   gap: 16px;
 }
@@ -147,21 +147,16 @@ p {
 }
 
 .logo {
-  width: 64px;
-  height: 64px;
-  filter: drop-shadow(0 14px 26px rgba(124, 43, 227, 0.35));
-}
-
-.subhead {
-  font-size: 1.05rem;
-  color: var(--muted);
-  margin-top: 10px;
+  width: 200px;
+  height: 200px;
+  filter: drop-shadow(0 22px 36px rgba(124, 43, 227, 0.4));
 }
 
 .hero-actions {
   margin-top: 20px;
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 12px;
 }
 
@@ -193,11 +188,6 @@ p {
   margin-bottom: 18px;
 }
 
-.card-head p {
-  color: var(--muted);
-  font-size: 0.95rem;
-}
-
 form {
   display: grid;
   gap: 14px;
@@ -211,13 +201,11 @@ label {
 }
 
 input,
-textarea,
 button {
   font-family: inherit;
 }
 
-input,
-textarea {
+input {
   border-radius: 14px;
   border: 1px solid rgba(36, 22, 37, 0.15);
   padding: 12px 14px;
@@ -226,16 +214,9 @@ textarea {
   color: var(--ink);
 }
 
-input:focus,
-textarea:focus {
+input:focus {
   outline: 2px solid rgba(255, 79, 216, 0.35);
   border-color: rgba(255, 79, 216, 0.35);
-}
-
-.search-row {
-  display: grid;
-  grid-template-columns: 1fr auto;
-  gap: 10px;
 }
 
 .primary {
@@ -252,11 +233,6 @@ textarea:focus {
 
 .primary:hover {
   transform: translateY(-2px);
-}
-
-.primary.small {
-  padding: 8px 14px;
-  font-size: 0.85rem;
 }
 
 button:disabled {
@@ -308,12 +284,19 @@ button:disabled {
 
 .result {
   display: grid;
-  grid-template-columns: 1fr auto;
+  grid-template-columns: 1fr;
   gap: 12px;
   padding: 14px;
   border-radius: 16px;
   background: rgba(255, 255, 255, 0.85);
   border: 1px solid rgba(255, 79, 216, 0.25);
+  cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.result:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 24px rgba(124, 43, 227, 0.18);
 }
 
 .result-title {
@@ -325,46 +308,6 @@ button:disabled {
   color: var(--muted);
   font-size: 0.85rem;
   margin-top: 4px;
-}
-
-.result-actions {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.selected-place {
-  border-radius: 16px;
-  padding: 14px;
-  border: 1px dashed rgba(124, 43, 227, 0.4);
-  background: rgba(255, 255, 255, 0.7);
-  display: grid;
-  gap: 6px;
-}
-
-#selected-map {
-  display: none;
-}
-
-.selected-label {
-  text-transform: uppercase;
-  letter-spacing: 1.5px;
-  font-size: 0.7rem;
-  color: var(--accent-2);
-  font-weight: 600;
-}
-
-.selected-name {
-  font-weight: 600;
-}
-
-.selected-address {
-  color: var(--muted);
-  font-size: 0.85rem;
-}
-
-.list-card input[type="search"] {
-  min-width: 200px;
 }
 
 .places {
@@ -392,27 +335,6 @@ button:disabled {
   color: var(--muted);
   font-size: 0.85rem;
   margin-top: 4px;
-}
-
-.place-note {
-  margin-top: 10px;
-  font-size: 0.95rem;
-}
-
-.place-tags {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-  margin-top: 8px;
-}
-
-.place-tags span {
-  padding: 4px 10px;
-  border-radius: 999px;
-  background: rgba(255, 215, 77, 0.25);
-  color: #7a4e00;
-  font-size: 0.75rem;
-  font-weight: 600;
 }
 
 .place-actions {
@@ -500,7 +422,7 @@ button:disabled {
 
   .hero-header {
     flex-direction: column;
-    align-items: flex-start;
+    align-items: center;
   }
 
   .place,
@@ -508,8 +430,7 @@ button:disabled {
     grid-template-columns: 1fr;
   }
 
-  .place-actions,
-  .result-actions {
+  .place-actions {
     flex-direction: row;
     flex-wrap: wrap;
   }
@@ -528,16 +449,8 @@ button:disabled {
     padding: 20px;
   }
 
-  h1 {
-    font-size: 1.6rem;
-  }
-
   h2 {
     font-size: 1.2rem;
-  }
-
-  .subhead {
-    font-size: 0.95rem;
   }
 
   .hero-actions {
@@ -545,8 +458,8 @@ button:disabled {
   }
 
   .logo {
-    width: 52px;
-    height: 52px;
+    width: 140px;
+    height: 140px;
   }
 
   .layout {
@@ -557,19 +470,7 @@ button:disabled {
     padding: 18px;
   }
 
-  .search-row {
-    grid-template-columns: 1fr;
-  }
-
-  .search-row .ghost,
-  .primary,
-  .ghost {
-    width: 100%;
-    justify-content: center;
-  }
-
-  input,
-  textarea {
+  input {
     font-size: 0.9rem;
   }
 

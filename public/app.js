@@ -2,8 +2,6 @@ const pinStorageKey = 'places_pin';
 let sessionPin = '';
 let places = [];
 let userLocation = null;
-let selectedPlace = null;
-let locationLabel = '';
 
 const geoModal = document.getElementById('geo-modal');
 const geoRetry = document.getElementById('geo-retry');
@@ -14,27 +12,19 @@ const pinInput = document.getElementById('pin-input');
 const pinRemember = document.getElementById('pin-remember');
 const pinSave = document.getElementById('pin-save');
 const pinError = document.getElementById('pin-error');
-const changePin = document.getElementById('change-pin');
-const syncStatus = document.getElementById('sync-status');
+
 const locationPill = document.getElementById('location-pill');
 
 const form = document.getElementById('place-form');
 const searchQueryInput = document.getElementById('search-query');
-const searchButton = document.getElementById('search-button');
 const searchResults = document.getElementById('search-results');
-const searchHint = document.getElementById('search-hint');
-const selectedName = document.getElementById('selected-name');
-const selectedAddress = document.getElementById('selected-address');
-const selectedMap = document.getElementById('selected-map');
-const noteInput = document.getElementById('place-note');
-const tagsInput = document.getElementById('place-tags');
-const saveButton = document.getElementById('save-place');
 const formHint = document.getElementById('form-hint');
 
 const placesContainer = document.getElementById('places');
-const filterInput = document.getElementById('filter');
 const placeTemplate = document.getElementById('place-template');
 const resultTemplate = document.getElementById('result-template');
+
+let searchTimer = null;
 
 function currentPin() {
   return sessionPin || localStorage.getItem(pinStorageKey) || '';
@@ -74,12 +64,7 @@ function closeGeoModal() {
   geoError.textContent = '';
 }
 
-function setStatus(text) {
-  syncStatus.textContent = text;
-}
-
 function setLocationLabel(text) {
-  locationLabel = text;
   if (!text) {
     locationPill.hidden = true;
     locationPill.textContent = '';
@@ -130,46 +115,33 @@ function formatDistance(value) {
 }
 
 function renderPlaces() {
+  placesContainer.innerHTML = '';
+
   if (!userLocation) {
-    placesContainer.innerHTML = '';
     const empty = document.createElement('p');
-    empty.textContent = 'Location required to show saved places.';
+    empty.textContent = 'Location required.';
     empty.className = 'form-hint';
     placesContainer.appendChild(empty);
     return;
   }
-
-  const query = filterInput.value.trim().toLowerCase();
-  placesContainer.innerHTML = '';
 
   const enriched = places.map((place) => ({
     ...place,
     distanceMi: distanceMiles(userLocation, { lat: place.lat, lng: place.lng })
   }));
 
-  const filtered = enriched.filter((place) => {
-    const haystack = `${place.name} ${place.tags || ''} ${place.address || ''}`.toLowerCase();
-    return haystack.includes(query);
-  });
+  enriched.sort((a, b) => a.distanceMi - b.distanceMi);
 
-  filtered.sort((a, b) => a.distanceMi - b.distanceMi);
-
-  if (filtered.length === 0) {
-    const empty = document.createElement('p');
-    empty.textContent = query ? 'No matches yet.' : 'No places saved yet. Add one above.';
-    empty.className = 'form-hint';
-    placesContainer.appendChild(empty);
+  if (enriched.length === 0) {
     return;
   }
 
-  filtered.forEach((place, index) => {
+  enriched.forEach((place, index) => {
     const node = placeTemplate.content.cloneNode(true);
     const root = node.querySelector('.place');
     const title = node.querySelector('.place-title');
     const meta = node.querySelector('.place-meta');
     const address = node.querySelector('.place-address');
-    const note = node.querySelector('.place-note');
-    const tags = node.querySelector('.place-tags');
     const openLink = node.querySelector('a');
     const delBtn = node.querySelector('button');
 
@@ -179,30 +151,14 @@ function renderPlaces() {
     address.textContent = place.address;
     openLink.href = place.mapsUrl;
 
-    if (place.note) {
-      note.textContent = place.note;
-    } else {
-      note.style.display = 'none';
-    }
-
-    tags.innerHTML = '';
-    if (place.tags) {
-      place.tags.split(',').map((tag) => tag.trim()).filter(Boolean).forEach((tag) => {
-        const chip = document.createElement('span');
-        chip.textContent = tag;
-        tags.appendChild(chip);
-      });
-    }
-
     delBtn.addEventListener('click', async () => {
       if (!confirm('Delete this place?')) return;
       try {
         await apiFetch(`/api/places/${place.id}`, { method: 'DELETE' });
         places = places.filter((p) => p.id !== place.id);
         renderPlaces();
-        setStatus('Deleted');
       } catch (err) {
-        setStatus('Delete failed');
+        formHint.textContent = err.message;
       }
     });
 
@@ -210,76 +166,51 @@ function renderPlaces() {
   });
 }
 
-function setSelectedPlace(place) {
-  selectedPlace = place;
-  if (!place) {
-    selectedName.textContent = 'No place selected yet.';
-    selectedAddress.textContent = '';
-    selectedMap.removeAttribute('href');
-    selectedMap.style.display = 'none';
-    saveButton.disabled = true;
-    return;
+async function savePlace(result) {
+  try {
+    formHint.textContent = '';
+    const saved = await apiFetch('/api/places', {
+      method: 'POST',
+      body: JSON.stringify({
+        name: result.name,
+        mapsUrl: result.mapsUrl,
+        placeId: result.placeId,
+        address: result.address,
+        lat: result.lat,
+        lng: result.lng,
+        note: '',
+        tags: ''
+      })
+    });
+    places.unshift(saved);
+    renderPlaces();
+    searchResults.innerHTML = '';
+    searchQueryInput.value = '';
+  } catch (err) {
+    formHint.textContent = err.message;
   }
-
-  selectedName.textContent = place.name;
-  selectedAddress.textContent = place.address;
-  selectedMap.href = place.mapsUrl;
-  selectedMap.style.display = 'inline-flex';
-  saveButton.disabled = false;
 }
 
 function renderSearchResults(results) {
   searchResults.innerHTML = '';
-  if (!results.length) {
-    const empty = document.createElement('p');
-    empty.className = 'form-hint';
-    empty.textContent = 'No results found.';
-    searchResults.appendChild(empty);
-    return;
-  }
-
   results.forEach((result) => {
     const distanceMi = distanceMiles(userLocation, { lat: result.lat, lng: result.lng });
     const node = resultTemplate.content.cloneNode(true);
     const title = node.querySelector('.result-title');
     const address = node.querySelector('.result-address');
     const distance = node.querySelector('.result-distance');
-    const openLink = node.querySelector('a');
-    const selectBtn = node.querySelector('button');
+    const root = node.querySelector('.result');
 
     title.textContent = result.name;
     address.textContent = result.address;
     distance.textContent = formatDistance(distanceMi);
-    openLink.href = result.mapsUrl;
 
-    selectBtn.addEventListener('click', () => {
-      setSelectedPlace({ ...result });
+    root.addEventListener('click', () => {
+      savePlace(result);
     });
 
     searchResults.appendChild(node);
   });
-}
-
-async function loadPlaces() {
-  if (!userLocation) {
-    openGeoModal('Location is required to load saved places.');
-    return;
-  }
-
-  try {
-    setStatus('Syncing');
-    await loadLocationName();
-    places = await apiFetch('/api/places');
-    renderPlaces();
-    setStatus('Synced');
-  } catch (err) {
-    if (err.message === 'PIN required') {
-      setStatus('Waiting for PIN');
-      return;
-    }
-    openGeoModal(err.message);
-    setStatus('Location error');
-  }
 }
 
 async function runSearch() {
@@ -287,21 +218,15 @@ async function runSearch() {
     openGeoModal('Location is required to search nearby places.');
     return;
   }
-  if (!locationLabel) {
-    openGeoModal('Location lookup failed. Retry location.');
-    return;
-  }
 
   const query = searchQueryInput.value.trim();
-  if (!query) {
-    searchHint.textContent = 'Enter a search term.';
+  if (query.length < 2) {
+    searchResults.innerHTML = '';
     return;
   }
 
-  searchHint.textContent = '';
-  formHint.textContent = '';
-  setStatus('Searching');
   try {
+    formHint.textContent = '';
     const params = new URLSearchParams({
       query,
       lat: userLocation.lat.toString(),
@@ -309,10 +234,8 @@ async function runSearch() {
     });
     const results = await apiFetch(`/api/search?${params.toString()}`);
     renderSearchResults(results);
-    setStatus('Search ready');
   } catch (err) {
-    searchHint.textContent = err.message;
-    setStatus('Search failed');
+    formHint.textContent = err.message;
   }
 }
 
@@ -330,6 +253,22 @@ async function requestLocation() {
   });
 }
 
+async function ensureLocation() {
+  try {
+    const position = await requestLocation();
+    userLocation = {
+      lat: position.coords.latitude,
+      lng: position.coords.longitude
+    };
+    closeGeoModal();
+    renderPlaces();
+    return true;
+  } catch (err) {
+    openGeoModal('Location permission is required. Enable it and retry.');
+    return false;
+  }
+}
+
 async function loadLocationName() {
   if (!userLocation) {
     throw new Error('Location is required to identify where you are.');
@@ -345,73 +284,22 @@ async function loadLocationName() {
   setLocationLabel(data.label);
 }
 
-async function ensureLocation() {
-  try {
-    const position = await requestLocation();
-    userLocation = {
-      lat: position.coords.latitude,
-      lng: position.coords.longitude
-    };
-    setLocationLabel('');
-    closeGeoModal();
-    renderPlaces();
-    return true;
-  } catch (err) {
-    openGeoModal('Location permission is required. Enable it and retry.');
-    return false;
-  }
-}
-
-form.addEventListener('submit', async (event) => {
-  event.preventDefault();
-  if (!selectedPlace) {
-    formHint.textContent = 'Select a place before saving.';
+async function loadPlaces() {
+  if (!userLocation) {
+    openGeoModal('Location is required to load saved places.');
     return;
   }
 
-  const note = noteInput.value.trim();
-  const tags = tagsInput.value.trim();
-  formHint.textContent = '';
-
   try {
-    const saved = await apiFetch('/api/places', {
-      method: 'POST',
-      body: JSON.stringify({
-        name: selectedPlace.name,
-        mapsUrl: selectedPlace.mapsUrl,
-        placeId: selectedPlace.placeId,
-        address: selectedPlace.address,
-        lat: selectedPlace.lat,
-        lng: selectedPlace.lng,
-        note,
-        tags
-      })
-    });
-    places.unshift(saved);
+    await loadLocationName();
+    places = await apiFetch('/api/places');
     renderPlaces();
-    form.reset();
-    setSelectedPlace(null);
-    searchResults.innerHTML = '';
-    searchQueryInput.value = '';
-    setStatus('Saved');
   } catch (err) {
-    formHint.textContent = err.message;
-    setStatus('Save failed');
+    if (err.message !== 'PIN required') {
+      openGeoModal(err.message);
+    }
   }
-});
-
-searchButton.addEventListener('click', runSearch);
-
-searchQueryInput.addEventListener('keydown', (event) => {
-  if (event.key === 'Enter') {
-    event.preventDefault();
-    runSearch();
-  }
-});
-
-filterInput.addEventListener('input', () => {
-  renderPlaces();
-});
+}
 
 pinSave.addEventListener('click', async () => {
   const pin = pinInput.value.trim();
@@ -428,23 +316,33 @@ pinSave.addEventListener('click', async () => {
   }
 });
 
-changePin.addEventListener('click', () => {
-  setPin('', false);
-  openPinModal();
-});
-
 geoRetry.addEventListener('click', async () => {
   const ok = await ensureLocation();
   if (!ok) return;
   if (!currentPin()) {
     openPinModal();
-  } else {
-    loadPlaces();
+    return;
+  }
+  loadPlaces();
+});
+
+form.addEventListener('submit', (event) => {
+  event.preventDefault();
+});
+
+searchQueryInput.addEventListener('input', () => {
+  if (searchTimer) clearTimeout(searchTimer);
+  searchTimer = setTimeout(runSearch, 350);
+});
+
+searchQueryInput.addEventListener('keydown', (event) => {
+  if (event.key === 'Enter') {
+    event.preventDefault();
+    runSearch();
   }
 });
 
 window.addEventListener('DOMContentLoaded', async () => {
-  setSelectedPlace(null);
   const ok = await ensureLocation();
   if (!ok) return;
   if (!currentPin()) {

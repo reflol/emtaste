@@ -21,7 +21,8 @@ Open `http://localhost:3000`.
 
 - Bun serves the static UI from `public/` and an API under `/api/*`.
 - The browser requests geolocation on load; the saved list is sorted by distance from the user.
-- The search box calls the Google Places Text Search API and builds a Google Maps URL from the place ID.
+- Typing in the search box autocompletes nearby places via the Google Places Text Search API.
+- Clicking a search result saves it and adds it to the list below.
 - The UI shows your resolved location name from the Google Geocoding API.
 - Every API request must include the shared PIN in the `x-pin` header.
 - Data is stored in `/app/data/places.json` and persisted via the Docker volume.
