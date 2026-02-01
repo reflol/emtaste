@@ -55,7 +55,14 @@ Account tokens do not have User permissions (like Memberships). Because Wrangler
 export CLOUDFLARE_ACCOUNT_ID=21e260d9fceed2c9e5539ef5853102ef
 ```
 
-Deploy steps:
+### Deploy steps (single required path)
+
+Prereqs:
+
+- `.wrangler/` must be writable by your user (fix ownership if it was created by root).
+- `GOOGLE_MAPS_API_KEY` must be **API-restricted only** (Geocoding API + Places API (New)); do not use HTTP referrer restrictions for the server-side key.
+
+Deploy:
 
 1) Create the D1 database and capture the database ID:
 
@@ -99,6 +106,16 @@ curl -sS -X POST \
 ```
 
 The app redirects `www` → apex in `functions/_middleware.js`.
+
+### Verify production
+
+After deploy, verify the API and UI:
+
+```bash
+curl -sS -H "x-pin: YOUR_PIN" "https://emtaste.com/api/location?lat=34.0522&lng=-118.2437"
+```
+
+You should get JSON with a `label`. If you see a 502, the Maps key is missing or restricted incorrectly.
 
 ## Notes
 
