@@ -2,16 +2,16 @@ const pinStorageKey = 'places_pin';
 let sessionPin = '';
 let places = [];
 let userLocation = null;
+let deferredInstall = null;
 
 const geoModal = document.getElementById('geo-modal');
 const geoRetry = document.getElementById('geo-retry');
-const geoError = document.getElementById('geo-error');
 
 const pinModal = document.getElementById('pin-modal');
 const pinInput = document.getElementById('pin-input');
 const pinRemember = document.getElementById('pin-remember');
 const pinSave = document.getElementById('pin-save');
-const pinError = document.getElementById('pin-error');
+const pinButton = document.getElementById('pin-button');
 
 const locationPill = document.getElementById('location-pill');
 
@@ -43,7 +43,7 @@ function openPinModal() {
   pinModal.classList.add('active');
   pinModal.setAttribute('aria-hidden', 'false');
   pinInput.value = '';
-  pinError.textContent = '';
+  pinInput.classList.remove('input-error');
   setTimeout(() => pinInput.focus(), 50);
 }
 
@@ -52,16 +52,14 @@ function closePinModal() {
   pinModal.setAttribute('aria-hidden', 'true');
 }
 
-function openGeoModal(message) {
+function openGeoModal() {
   geoModal.classList.add('active');
   geoModal.setAttribute('aria-hidden', 'false');
-  geoError.textContent = message || '';
 }
 
 function closeGeoModal() {
   geoModal.classList.remove('active');
   geoModal.setAttribute('aria-hidden', 'true');
-  geoError.textContent = '';
 }
 
 function setLocationLabel(text) {
@@ -73,6 +71,37 @@ function setLocationLabel(text) {
   locationPill.textContent = text;
   locationPill.hidden = false;
 }
+
+function showPinError() {
+  pinInput.classList.add('input-error');
+  pinInput.value = '';
+  pinInput.focus();
+  setTimeout(() => pinInput.classList.remove('input-error'), 900);
+}
+
+function showPinHelp() {
+  const isIos = /iphone|ipad|ipod/i.test(navigator.userAgent);
+  if (isIos) {
+    alert('On iPhone: Share → Add to Home Screen.');
+    return;
+  }
+  alert('Use your browser menu and choose “Add to Home screen.”');
+}
+
+window.addEventListener('beforeinstallprompt', (event) => {
+  event.preventDefault();
+  deferredInstall = event;
+});
+
+pinButton.addEventListener('click', async () => {
+  if (deferredInstall) {
+    deferredInstall.prompt();
+    await deferredInstall.userChoice;
+    deferredInstall = null;
+    return;
+  }
+  showPinHelp();
+});
 
 async function apiFetch(path, options = {}) {
   const headers = Object.assign({ 'Content-Type': 'application/json' }, options.headers || {});
@@ -215,7 +244,7 @@ function renderSearchResults(results) {
 
 async function runSearch() {
   if (!userLocation) {
-    openGeoModal('Location is required to search nearby places.');
+    openGeoModal();
     return;
   }
 
@@ -264,7 +293,7 @@ async function ensureLocation() {
     renderPlaces();
     return true;
   } catch (err) {
-    openGeoModal('Location permission is required. Enable it and retry.');
+    openGeoModal();
     return false;
   }
 }
@@ -286,7 +315,7 @@ async function loadLocationName() {
 
 async function loadPlaces() {
   if (!userLocation) {
-    openGeoModal('Location is required to load saved places.');
+    openGeoModal();
     return;
   }
 
@@ -296,7 +325,8 @@ async function loadPlaces() {
     renderPlaces();
   } catch (err) {
     if (err.message !== 'PIN required') {
-      openGeoModal(err.message);
+      console.error(err);
+      openGeoModal();
     }
   }
 }
@@ -304,11 +334,11 @@ async function loadPlaces() {
 pinSave.addEventListener('click', async () => {
   const pin = pinInput.value.trim();
   if (!pin) {
-    pinError.textContent = 'Enter a PIN to continue.';
+    showPinError();
     return;
   }
   if (!/^\d{6}$/.test(pin)) {
-    pinError.textContent = 'PIN must be exactly 6 digits.';
+    showPinError();
     return;
   }
   setPin(pin, pinRemember.checked);
@@ -316,7 +346,7 @@ pinSave.addEventListener('click', async () => {
     await loadPlaces();
     closePinModal();
   } catch (err) {
-    pinError.textContent = 'PIN did not match. Try again.';
+    showPinError();
   }
 });
 
@@ -344,6 +374,10 @@ searchQueryInput.addEventListener('keydown', (event) => {
     event.preventDefault();
     runSearch();
   }
+});
+
+pinInput.addEventListener('input', () => {
+  pinInput.classList.remove('input-error');
 });
 
 window.addEventListener('DOMContentLoaded', async () => {

@@ -1,0 +1,8 @@
+name = "emtaste"
+compatibility_date = "2026-02-01"
+pages_build_output_dir = "public"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "emtaste"
+database_id = "3aecf3ff-dc48-43d3-9b3c-cf19372f6a79"

@@ -1,16 +1,10 @@
 services:
   app:
-    build: .
+    image: node:20-slim
+    working_dir: /app
     ports:
       - "3000:3000"
-    environment:
-      APP_PIN: ${APP_PIN}
-      GOOGLE_MAPS_API_KEY: ${GOOGLE_MAPS_API_KEY}
-      PORT: ${PORT}
-      FIRESTORE_PROJECT_ID: ${FIRESTORE_PROJECT_ID}
-      FIRESTORE_DATABASE: ${FIRESTORE_DATABASE}
-      FIRESTORE_COLLECTION: ${FIRESTORE_COLLECTION}
-      GOOGLE_APPLICATION_CREDENTIALS: /secrets/firestore-key.json
     volumes:
-      - ./secrets/firestore-key.json:/secrets/firestore-key.json:ro
-    restart: unless-stopped
+      - .:/app
+    command: >
+      sh -c "npx --yes wrangler pages dev public --ip 0.0.0.0 --port 3000"

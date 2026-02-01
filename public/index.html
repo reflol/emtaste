@@ -18,6 +18,7 @@
     <div class="bg-orb orb-two" aria-hidden="true"></div>
     <div class="bg-sun" aria-hidden="true"></div>
     <div class="bg-grid" aria-hidden="true"></div>
+    <button id="pin-button" class="pin-button" type="button">Pin</button>
     <header class="hero">
       <div class="hero-shell">
         <img class="logo" src="logo.png" alt="emtaste logo" />
@@ -51,24 +52,20 @@
 
     <div id="geo-modal" class="modal" aria-hidden="true">
       <div class="modal-card">
-        <h3>Location required</h3>
-        <p>emtaste sorts your saved places by distance and needs your location to work.</p>
-        <button id="geo-retry" class="primary">Retry location</button>
-        <p id="geo-error" class="error"></p>
+        <h3>Location</h3>
+        <button id="geo-retry" class="primary">Retry</button>
       </div>
     </div>
 
     <div id="pin-modal" class="modal" aria-hidden="true">
       <div class="modal-card">
-        <h3>Enter your shared PIN</h3>
-        <p>Use the same PIN on each device. It is stored locally on this browser.</p>
+        <h3>PIN</h3>
         <input id="pin-input" type="password" inputmode="numeric" autocomplete="off" placeholder="6 digits" minlength="6" maxlength="6" pattern="\\d{6}" />
         <label class="checkbox">
           <input id="pin-remember" type="checkbox" checked />
           Remember on this device
         </label>
         <button id="pin-save" class="primary">Continue</button>
-        <p id="pin-error" class="error"></p>
       </div>
     </div>
 
