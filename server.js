@@ -64,7 +64,7 @@ async function serveStatic(pathname) {
     return new Response(indexFile);
   }
 
-  const requested = pathname.replace(/^\\/+/, '');
+  const requested = pathname.replace(/^\/+/, '');
   const resolved = resolve(publicDir, requested);
   if (!resolved.startsWith(publicDir)) {
     return new Response('Not found', { status: 404 });

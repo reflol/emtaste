@@ -1,6 +1,6 @@
-# Town Tastes
+# emtaste
 
-A tiny web app for saving restaurants and places with Google Maps links. It runs on Bun, uses a shared PIN (no accounts), and stores data in a single JSON file on disk.
+A cat-themed web app for saving restaurants and places with Google Maps links. It runs on Bun, uses a shared PIN (no accounts), and stores data in a single JSON file on disk.
 
 ## Docker Compose quick start
 
