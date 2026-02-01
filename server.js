@@ -3,8 +3,8 @@ import { existsSync, mkdirSync, readFileSync, renameSync, writeFileSync } from '
 import { join, resolve } from 'path';
 
 const appPin = (process.env.APP_PIN || '').trim();
-if (!appPin) {
-  console.error('[places] APP_PIN is required. Set it in the environment.');
+if (!/^\d{6}$/.test(appPin)) {
+  console.error('[places] APP_PIN must be exactly 6 digits.');
   process.exit(1);
 }
 const pinHash = crypto.createHash('sha256').update(appPin).digest();

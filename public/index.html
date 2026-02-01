@@ -19,15 +19,11 @@
     <div class="bg-sun" aria-hidden="true"></div>
     <div class="bg-grid" aria-hidden="true"></div>
     <header class="hero">
-      <div class="hero-card">
-        <div class="hero-header">
-          <div class="brand">
-            <img class="logo" src="logo.png" alt="emtaste logo" />
-          </div>
-        </div>
-        <div class="hero-actions">
-          <span class="pill location-pill" id="location-pill" hidden></span>
-        </div>
+      <div class="hero-shell">
+        <img class="logo" src="logo.png" alt="emtaste logo" />
+      </div>
+      <div class="location-row">
+        <span class="pill location-pill" id="location-pill" hidden></span>
       </div>
     </header>
 
@@ -66,7 +62,7 @@
       <div class="modal-card">
         <h3>Enter your shared PIN</h3>
         <p>Use the same PIN on each device. It is stored locally on this browser.</p>
-        <input id="pin-input" type="password" inputmode="numeric" autocomplete="off" placeholder="4 digits" />
+        <input id="pin-input" type="password" inputmode="numeric" autocomplete="off" placeholder="6 digits" minlength="6" maxlength="6" pattern="\\d{6}" />
         <label class="checkbox">
           <input id="pin-remember" type="checkbox" checked />
           Remember on this device

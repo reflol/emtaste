@@ -70,7 +70,7 @@ function setLocationLabel(text) {
     locationPill.textContent = '';
     return;
   }
-  locationPill.textContent = `Near ${text}`;
+  locationPill.textContent = text;
   locationPill.hidden = false;
 }
 
@@ -305,6 +305,10 @@ pinSave.addEventListener('click', async () => {
   const pin = pinInput.value.trim();
   if (!pin) {
     pinError.textContent = 'Enter a PIN to continue.';
+    return;
+  }
+  if (!/^\d{6}$/.test(pin)) {
+    pinError.textContent = 'PIN must be exactly 6 digits.';
     return;
   }
   setPin(pin, pinRemember.checked);

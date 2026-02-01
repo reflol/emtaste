@@ -114,46 +114,31 @@ p {
 }
 
 .hero {
-  padding: 48px 20px 16px;
+  padding: 48px 20px 10px;
   display: flex;
+  flex-direction: column;
+  align-items: center;
   justify-content: center;
   position: relative;
   z-index: 1;
 }
 
-.hero-card {
-  max-width: 900px;
+.hero-shell {
   width: 100%;
-  padding: 32px 36px;
-  background: linear-gradient(135deg, rgba(255, 248, 255, 0.92), rgba(255, 255, 255, 0.75));
-  border-radius: var(--radius);
-  border: 1px solid rgba(255, 79, 216, 0.35);
-  box-shadow: var(--shadow);
-  backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
   animation: fadeUp 0.8s ease-out;
 }
 
-.hero-header {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: 16px;
-}
-
-.brand {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-}
-
 .logo {
-  width: 200px;
-  height: 200px;
-  filter: drop-shadow(0 22px 36px rgba(124, 43, 227, 0.4));
+  width: clamp(200px, 40vw, 320px);
+  height: clamp(200px, 40vw, 320px);
+  filter: drop-shadow(0 28px 44px rgba(124, 43, 227, 0.5));
 }
 
-.hero-actions {
-  margin-top: 20px;
+.location-row {
+  margin-top: 12px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -268,8 +253,13 @@ button:disabled {
 }
 
 .location-pill {
-  background: rgba(30, 214, 193, 0.2);
-  color: #0b6056;
+  background: linear-gradient(135deg, #ff4fd8, #7c2be3, #1ed6c1);
+  color: #fff;
+  text-shadow: 0 1px 6px rgba(36, 22, 37, 0.35);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: min(80vw, 320px);
 }
 
 .form-hint {
@@ -412,17 +402,8 @@ button:disabled {
 }
 
 @media (max-width: 800px) {
-  .hero-card {
-    padding: 24px;
-  }
-
   .card-head {
     flex-direction: column;
-  }
-
-  .hero-header {
-    flex-direction: column;
-    align-items: center;
   }
 
   .place,
@@ -442,24 +423,16 @@ button:disabled {
   }
 
   .hero {
-    padding: 32px 14px 10px;
-  }
-
-  .hero-card {
-    padding: 20px;
+    padding: 32px 14px 6px;
   }
 
   h2 {
     font-size: 1.2rem;
   }
 
-  .hero-actions {
-    flex-wrap: wrap;
-  }
-
   .logo {
-    width: 140px;
-    height: 140px;
+    width: 220px;
+    height: 220px;
   }
 
   .layout {

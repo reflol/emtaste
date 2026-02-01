@@ -14,7 +14,7 @@ Open `http://localhost:3000`.
 
 ## Configuration
 
-- `APP_PIN` (required): Shared PIN for all devices. The server exits if this is missing.
+- `APP_PIN` (required): Shared 6-digit PIN for all devices. The server exits if this is missing or not 6 digits.
 - `GOOGLE_MAPS_API_KEY` (required): Google Maps Places API (New) + Geocoding API key used for search and location display. The server exits if this is missing.
 
 ## How it works
